@@ -35,7 +35,7 @@ class Controller(BaseController):
     dependencies = DependenciesBuilder().build()
 
     @handlers.get(
-        summary="Get index",
+        summary="List tasks",
     )
     async def list(
         self, service: Service
@@ -67,7 +67,7 @@ class Controller(BaseController):
 
         try:
             response = await service.get(request)
-        except e.TaskNotFoundError as ex:
+        except e.NotFoundError as ex:
             raise NotFoundException from ex
 
         return Response(Serializable(response.task))
@@ -92,7 +92,7 @@ class Controller(BaseController):
 
         try:
             response = await service.get_queued(request)
-        except e.TaskNotFoundError as ex:
+        except e.NotFoundError as ex:
             raise NotFoundException from ex
 
         return Response(Serializable(response.task))
@@ -117,7 +117,7 @@ class Controller(BaseController):
 
         try:
             response = await service.get_waiting(request)
-        except e.TaskNotFoundError as ex:
+        except e.NotFoundError as ex:
             raise NotFoundException from ex
 
         return Response(Serializable(response.task))
@@ -142,7 +142,7 @@ class Controller(BaseController):
 
         try:
             response = await service.get_sleeping(request)
-        except e.TaskNotFoundError as ex:
+        except e.NotFoundError as ex:
             raise NotFoundException from ex
 
         return Response(Serializable(response.task))
@@ -167,7 +167,7 @@ class Controller(BaseController):
 
         try:
             response = await service.get_running(request)
-        except e.TaskNotFoundError as ex:
+        except e.NotFoundError as ex:
             raise NotFoundException from ex
 
         return Response(Serializable(response.task))
@@ -192,7 +192,7 @@ class Controller(BaseController):
 
         try:
             response = await service.get_cancelled(request)
-        except e.TaskNotFoundError as ex:
+        except e.NotFoundError as ex:
             raise NotFoundException from ex
 
         return Response(Serializable(response.task))
@@ -217,7 +217,7 @@ class Controller(BaseController):
 
         try:
             response = await service.get_failed(request)
-        except e.TaskNotFoundError as ex:
+        except e.NotFoundError as ex:
             raise NotFoundException from ex
 
         return Response(Serializable(response.task))
@@ -242,7 +242,7 @@ class Controller(BaseController):
 
         try:
             response = await service.get_completed(request)
-        except e.TaskNotFoundError as ex:
+        except e.NotFoundError as ex:
             raise NotFoundException from ex
 
         return Response(Serializable(response.task))
@@ -292,7 +292,7 @@ class Controller(BaseController):
 
         try:
             response = await service.cancel(request)
-        except e.TaskNotFoundError as ex:
+        except e.NotFoundError as ex:
             raise NotFoundException from ex
 
         return Response(Serializable(response.task))

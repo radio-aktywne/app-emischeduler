@@ -22,6 +22,12 @@ class RecordingList(SerializableModel):
     count: int
     """Total number of recordings that match the request."""
 
+    limit: int | None
+    """Maximum number of returned recordings."""
+
+    offset: int | None
+    """Number of skipped recordings."""
+
     recordings: Sequence[Recording]
     """List of recordings."""
 

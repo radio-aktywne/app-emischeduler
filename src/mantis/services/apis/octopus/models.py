@@ -1,7 +1,10 @@
 from collections.abc import AsyncGenerator
 from collections.abc import Set as AbstractSet
 from enum import StrEnum
+from typing import Annotated
 from uuid import UUID
+
+from pydantic import PlainSerializer
 
 from mantis.models.base import SerializableModel, datamodel
 
@@ -51,7 +54,13 @@ type ReserveRequestData = ReservationInput
 
 type ReserveResponseReservation = Reservation
 
-type SubscribeRequestTypes = AbstractSet[EventType] | None
+type SubscribeRequestTypes = Annotated[
+    AbstractSet[EventType] | None,
+    PlainSerializer(
+        lambda value: ",".join(value) if value is not None else None,
+        return_type=str | None,
+    ),
+]
 
 type SubscribeResponseMessages = AsyncGenerator[EventMessage]
 

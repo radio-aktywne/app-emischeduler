@@ -7,7 +7,7 @@ from pystreams.ffmpeg import FFmpegNode, FFmpegStreamMetadata
 from pystreams.process import ProcessBasedStreamFactory, ProcessBasedStreamMetadata
 
 from mantis.config.models import Config
-from mantis.services.octopus import models as om
+from mantis.services.apis.octopus import models as om
 
 
 class Runner:

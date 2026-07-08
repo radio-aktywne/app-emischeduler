@@ -19,11 +19,11 @@ from mantis.api.openapi import OpenAPIConfigBuilder
 from mantis.api.plugins.pydantic import PydanticPlugin
 from mantis.api.routes.router import router
 from mantis.config.models import Config
-from mantis.services.beaver.service import BeaverService
+from mantis.services.apis.beaver.service import BeaverService
+from mantis.services.apis.gecko.service import GeckoService
+from mantis.services.apis.numbat.service import NumbatService
+from mantis.services.apis.octopus.service import OctopusService
 from mantis.services.cleaner.service import CleanerService
-from mantis.services.gecko.service import GeckoService
-from mantis.services.numbat.service import NumbatService
-from mantis.services.octopus.service import OctopusService
 from mantis.services.scheduler.service import SchedulerService
 from mantis.services.scheduler.store import Store
 from mantis.services.synchronizer.service import SynchronizerService
@@ -84,10 +84,10 @@ class AppBuilder:
 
         return State(
             {
-                "config": self._config,
-                "store": store,
-                "scheduler": scheduler,
                 "cleaner": cleaner,
+                "config": self._config,
+                "scheduler": scheduler,
+                "store": store,
                 "synchronizer": synchronizer,
             }
         )

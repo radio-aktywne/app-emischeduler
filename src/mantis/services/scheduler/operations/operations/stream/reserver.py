@@ -1,13 +1,12 @@
 import asyncio
-from http import HTTPStatus
 
 from mantis.config.models import Config
-from mantis.services.octopus import errors as oe
-from mantis.services.octopus import models as om
-from mantis.services.octopus.service import OctopusService
+from mantis.services.apis.octopus import errors as oe
+from mantis.services.apis.octopus import models as om
+from mantis.services.apis.octopus.service import OctopusService
 from mantis.services.scheduler.operations.operations.stream import errors as e
 from mantis.services.scheduler.operations.operations.stream import models as m
-from mantis.utils.time import naiveutcnow
+from mantis.utils.time import awareutcnow
 
 
 class Reserver:
@@ -17,45 +16,50 @@ class Reserver:
         self._config = config
         self._octopus = octopus
 
-    async def reserve(self, request: m.ReserveRequest) -> m.ReserveResponse:
-        """Reserve a stream."""
+    async def _subscribe_to_availability_changes(self) -> om.SubscribeResponseMessages:
         subscribe_request = om.SubscribeRequest(
             types={om.EventType.AVAILABILITY_CHANGED}
         )
-        subscribe_response = await self._octopus.sse.subscribe(subscribe_request)
+
+        subscribe_response = await self._octopus.subscribe(subscribe_request)
+
+        return subscribe_response.messages
+
+    async def _try_reserve(
+        self, request: m.ReserveRequest
+    ) -> om.ReserveResponseReservation | None:
+        try:
+            reserve_request = om.ReserveRequest(
+                data=om.ReservationInput(event=request.event, format=request.format)
+            )
+            reserve_response = await self._octopus.reserve(reserve_request)
+        except oe.ConflictError:
+            return None
+        else:
+            return reserve_response.reservation
+
+    async def reserve(self, request: m.ReserveRequest) -> m.ReserveResponse:
+        """Reserve a stream."""
+        changes = await self._subscribe_to_availability_changes()
 
         try:
-            deadline = naiveutcnow() + self._config.operations.stream.timeout
+            deadline = awareutcnow() + self._config.operations.stream.timeout
 
-            while naiveutcnow() < deadline:
-                message_task = asyncio.ensure_future(anext(subscribe_response.messages))
+            while awareutcnow() < deadline:
+                change = asyncio.ensure_future(anext(changes))
 
                 try:
-                    reserve_request = om.ReserveRequest(
-                        data=om.ReservationInput(
-                            event=request.event, format=request.format
-                        )
-                    )
-                    reserve_response = await self._octopus.reserve.reserve(
-                        reserve_request
-                    )
-                except oe.ResponseError as ex:
-                    if ex.response.status_code == HTTPStatus.CONFLICT:
-                        await asyncio.wait_for(
-                            message_task,
-                            timeout=(deadline - naiveutcnow()).total_seconds(),
-                        )
-                        continue
+                    reservation = await self._try_reserve(request)
 
-                    raise
-                else:
-                    return m.ReserveResponse(
-                        credentials=reserve_response.reservation.credentials
-                    )
+                    if reservation is not None:
+                        return m.ReserveResponse(credentials=reservation.credentials)
+
+                    timeout = (deadline - awareutcnow()).total_seconds()
+                    await asyncio.wait_for(change, timeout=timeout)
                 finally:
-                    message_task.cancel()
-                    await asyncio.wait([message_task])
+                    change.cancel()
+                    await asyncio.wait([change])
 
             raise e.ReservationFailedError(request.event)
         finally:
-            await subscribe_response.messages.aclose()
+            await changes.aclose()

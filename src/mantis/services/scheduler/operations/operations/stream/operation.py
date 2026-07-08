@@ -1,20 +1,19 @@
 from collections.abc import Mapping
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import override
-from uuid import UUID
 
 from pyscheduler.models import types as t
 from pyscheduler.protocols import operation as o
 
 from mantis.config.models import Config
-from mantis.services.beaver import models as bm
-from mantis.services.beaver.service import BeaverService
-from mantis.services.gecko.service import GeckoService
-from mantis.services.numbat.service import NumbatService
-from mantis.services.octopus import models as om
-from mantis.services.octopus.service import OctopusService
+from mantis.services.apis.beaver import models as bm
+from mantis.services.apis.beaver.service import BeaverService
+from mantis.services.apis.gecko.service import GeckoService
+from mantis.services.apis.numbat.service import NumbatService
+from mantis.services.apis.octopus import models as om
+from mantis.services.apis.octopus.service import OctopusService
 from mantis.services.scheduler.operations.operations.stream import errors as e
 from mantis.services.scheduler.operations.operations.stream import models as m
 from mantis.services.scheduler.operations.operations.stream.downloader import Downloader
@@ -44,38 +43,38 @@ class StreamOperation(o.Operation):
         self._reserver = Reserver(config=config, octopus=octopus)
         self._runner = Runner(config=config)
 
-    def _parse_parameters(self, parameters: dict[str, t.JSON]) -> m.Parameters:
-        return m.Parameters.model_validate(parameters)
-
-    async def _find_instance(
-        self, event: UUID, start: datetime
-    ) -> tuple[bm.Event, bm.EventInstance]:
-        find_request = m.FindRequest(event=event, start=start)
+    async def _find_instance(self, params: m.Parameters) -> bm.InstanceWithEvent:
+        find_request = m.FindRequest(event=params.event, start=params.start)
 
         find_response = await self._finder.find(find_request)
 
-        return find_response.event, find_response.instance
+        return find_response.instance
 
-    def _validate_instance(self, event: bm.Event, instance: bm.EventInstance) -> None:
-        if event.type not in {bm.EventType.replay, bm.EventType.prerecorded}:
-            raise e.UnexpectedEventTypeError(event.id, event.type)
+    def _validate_instance(self, instance: bm.InstanceWithEvent) -> None:
+        if instance.event.type not in {bm.EventType.replay, bm.EventType.prerecorded}:
+            raise e.UnexpectedEventTypeError(instance.event)
 
-        if instance.end.replace(tzinfo=event.timezone) < awareutcnow():
-            raise e.InstanceAlreadyEndedError(event.id, instance.start, instance.end)
+        if (
+            instance.start.replace(tzinfo=instance.event.timezone) + instance.duration
+            < awareutcnow()
+        ):
+            raise e.InstanceAlreadyEndedError(instance)
 
     async def _download(
-        self, event: bm.Event, instance: bm.EventInstance, directory: str
+        self, instance: bm.InstanceWithEvent, directory: str
     ) -> tuple[Path, om.Format]:
         download_request = m.DownloadRequest(
-            event=event, instance=instance, directory=Path(directory)
+            instance=instance, directory=Path(directory)
         )
 
         download_response = await self._downloader.download(download_request)
 
         return download_response.path, download_response.format
 
-    async def _reserve(self, event: bm.Event, fmt: om.Format) -> om.Credentials:
-        reserve_request = m.ReserveRequest(event=event.id, format=fmt)
+    async def _reserve(
+        self, instance: bm.InstanceWithEvent, fmt: om.Format
+    ) -> om.Credentials:
+        reserve_request = m.ReserveRequest(event=instance.event.id, format=fmt)
 
         reserve_response = await self._reserver.reserve(reserve_request)
 
@@ -95,18 +94,18 @@ class StreamOperation(o.Operation):
     async def run(
         self, parameters: dict[str, t.JSON], dependencies: dict[str, t.JSON]
     ) -> t.JSON:
-        params = self._parse_parameters(parameters)
+        params = m.Parameters.model_validate(parameters)
 
-        event, instance = await self._find_instance(params.id, params.start)
-        self._validate_instance(event, instance)
+        instance = await self._find_instance(params)
+        self._validate_instance(instance)
 
-        waiter = Waiter(event, instance)
+        waiter = Waiter(instance)
 
         with TemporaryDirectory() as directory:
-            path, fmt = await self._download(event, instance, directory)
+            path, fmt = await self._download(instance, directory)
 
             await waiter.wait(timedelta(seconds=10))
-            credentials = await self._reserve(event, fmt)
+            credentials = await self._reserve(instance, fmt)
 
             await waiter.wait(timedelta(seconds=1))
             await self._stream(path, fmt, credentials, params.metadata)

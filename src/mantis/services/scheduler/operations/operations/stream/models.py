@@ -4,19 +4,19 @@ from pathlib import Path
 from uuid import UUID
 
 from mantis.models.base import SerializableModel, dataclass
-from mantis.services.beaver import models as bm
-from mantis.services.octopus import models as om
+from mantis.services.apis.beaver import models as bm
+from mantis.services.apis.octopus import models as om
 from mantis.utils.time import NaiveDatetime
 
 
 class Parameters(SerializableModel):
     """Parameters for the stream operation."""
 
-    id: UUID
+    event: UUID
     """Identifier of the event."""
 
     start: NaiveDatetime
-    """Start datetime of the event instance in event timezone."""
+    """Start datetime of the instance in event timezone."""
 
     metadata: Mapping[str, str] | None = None
     """Metadata to attach to the stream."""
@@ -24,35 +24,29 @@ class Parameters(SerializableModel):
 
 @dataclass
 class FindRequest:
-    """Request to find an event instance."""
+    """Request to find an instance."""
 
     event: UUID
     """Identifier of the event."""
 
     start: datetime
-    """Start datetime of the event instance in event timezone."""
+    """Start datetime of the instance in event timezone."""
 
 
 @dataclass
 class FindResponse:
     """Results of the find operation."""
 
-    event: bm.Event
-    """Event that was found."""
-
-    instance: bm.EventInstance
-    """Instance of the event that was found."""
+    instance: bm.InstanceWithEvent
+    """Instance that was found."""
 
 
 @dataclass
 class DownloadRequest:
-    """Request to download media for an event instance."""
+    """Request to download media for an instance."""
 
-    event: bm.Event
-    """Event to download the media for."""
-
-    instance: bm.EventInstance
-    """Instance of the event to download the media for."""
+    instance: bm.InstanceWithEvent
+    """Instance to download the media for."""
 
     directory: Path
     """Directory to download the media to."""

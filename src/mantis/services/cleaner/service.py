@@ -7,7 +7,7 @@ from datetime import datetime
 from mantis.config.models import CleanerConfig
 from mantis.services.scheduler.models import transfer as t
 from mantis.services.scheduler.service import SchedulerService
-from mantis.utils.time import naiveutcnow
+from mantis.utils.time import awareutcnow
 
 
 class CleanerService:
@@ -24,7 +24,7 @@ class CleanerService:
         return reference + math.ceil((dt - reference) / interval) * interval
 
     async def _wait(self) -> None:
-        now = naiveutcnow()
+        now = awareutcnow()
         target = self._find_next_time(now)
 
         delta = target - now

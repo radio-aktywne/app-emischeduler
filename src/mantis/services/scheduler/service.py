@@ -1,10 +1,10 @@
 from pyscheduler import scheduler as s
 
 from mantis.config.models import Config
-from mantis.services.beaver.service import BeaverService
-from mantis.services.gecko.service import GeckoService
-from mantis.services.numbat.service import NumbatService
-from mantis.services.octopus.service import OctopusService
+from mantis.services.apis.beaver.service import BeaverService
+from mantis.services.apis.gecko.service import GeckoService
+from mantis.services.apis.numbat.service import NumbatService
+from mantis.services.apis.octopus.service import OctopusService
 from mantis.services.scheduler.cleaning.factory import CleaningStrategyFactory
 from mantis.services.scheduler.conditions.factory import ConditionFactory
 from mantis.services.scheduler.events import EventFactory

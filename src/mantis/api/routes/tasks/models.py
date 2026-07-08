@@ -1,11 +1,12 @@
 from collections.abc import Set as AbstractSet
-from datetime import UTC
 from typing import Self
 from uuid import UUID
 
+from pydantic import Field
+
 from mantis.models.base import SerializableModel, datamodel
 from mantis.services.scheduler.models import transfer as sm
-from mantis.utils.time import NaiveDatetime
+from mantis.utils.time import UTCDatetime
 
 
 class TaskIndex(SerializableModel):
@@ -34,7 +35,7 @@ class TaskIndex(SerializableModel):
 
     @classmethod
     def map(cls, index: sm.TaskIndex) -> Self:
-        """Map to internal representation."""
+        """Map from internal representation."""
         return cls(
             queued=index.queued,
             waiting=index.waiting,
@@ -57,7 +58,7 @@ class GenericTask(SerializableModel):
 
     @classmethod
     def map(cls, task: sm.GenericTask) -> Self:
-        """Map to internal representation."""
+        """Map from internal representation."""
         return cls(task=task.task, status=task.status)
 
 
@@ -67,16 +68,13 @@ class QueuedTask(SerializableModel):
     task: sm.Task
     """Task data."""
 
-    enqueued: NaiveDatetime
+    enqueued: UTCDatetime
     """Datetime in UTC when the task was enqueued."""
 
     @classmethod
     def map(cls, task: sm.QueuedTask) -> Self:
-        """Map to internal representation."""
-        return cls(
-            task=task.task,
-            enqueued=task.enqueued.astimezone(UTC).replace(tzinfo=None),
-        )
+        """Map from internal representation."""
+        return cls(task=task.task, enqueued=task.enqueued)
 
 
 class WaitingTask(SerializableModel):
@@ -85,20 +83,16 @@ class WaitingTask(SerializableModel):
     task: sm.Task
     """Task data."""
 
-    enqueued: NaiveDatetime
+    enqueued: UTCDatetime
     """Datetime in UTC when the task was enqueued."""
 
-    dequeued: NaiveDatetime
+    dequeued: UTCDatetime
     """Datetime in UTC when the task was dequeued."""
 
     @classmethod
     def map(cls, task: sm.WaitingTask) -> Self:
-        """Map to internal representation."""
-        return cls(
-            task=task.task,
-            enqueued=task.enqueued.astimezone(UTC).replace(tzinfo=None),
-            dequeued=task.dequeued.astimezone(UTC).replace(tzinfo=None),
-        )
+        """Map from internal representation."""
+        return cls(task=task.task, enqueued=task.enqueued, dequeued=task.dequeued)
 
 
 class SleepingTask(SerializableModel):
@@ -107,25 +101,23 @@ class SleepingTask(SerializableModel):
     task: sm.Task
     """Task data."""
 
-    enqueued: NaiveDatetime
+    enqueued: UTCDatetime
     """Datetime in UTC when the task was enqueued."""
 
-    dequeued: NaiveDatetime | None
+    dequeued: UTCDatetime | None
     """Datetime in UTC when the task was dequeued."""
 
-    slept: NaiveDatetime
+    slept: UTCDatetime
     """Datetime in UTC when the task was slept."""
 
     @classmethod
     def map(cls, task: sm.SleepingTask) -> Self:
-        """Map to internal representation."""
+        """Map from internal representation."""
         return cls(
             task=task.task,
-            enqueued=task.enqueued.astimezone(UTC).replace(tzinfo=None),
-            dequeued=task.dequeued.astimezone(UTC).replace(tzinfo=None)
-            if task.dequeued
-            else None,
-            slept=task.slept.astimezone(UTC).replace(tzinfo=None),
+            enqueued=task.enqueued,
+            dequeued=task.dequeued,
+            slept=task.slept,
         )
 
 
@@ -135,23 +127,23 @@ class RunningTask(SerializableModel):
     task: sm.Task
     """Task data."""
 
-    enqueued: NaiveDatetime
+    enqueued: UTCDatetime
     """Datetime in UTC when the task was enqueued."""
 
-    dequeued: NaiveDatetime
+    dequeued: UTCDatetime
     """Datetime in UTC when the task was dequeued."""
 
-    started: NaiveDatetime
+    started: UTCDatetime
     """Datetime in UTC when the task was started."""
 
     @classmethod
     def map(cls, task: sm.RunningTask) -> Self:
-        """Map to internal representation."""
+        """Map from internal representation."""
         return cls(
             task=task.task,
-            enqueued=task.enqueued.astimezone(UTC).replace(tzinfo=None),
-            dequeued=task.dequeued.astimezone(UTC).replace(tzinfo=None),
-            started=task.started.astimezone(UTC).replace(tzinfo=None),
+            enqueued=task.enqueued,
+            dequeued=task.dequeued,
+            started=task.started,
         )
 
 
@@ -161,29 +153,27 @@ class CancelledTask(SerializableModel):
     task: sm.Task
     """Task data."""
 
-    enqueued: NaiveDatetime
+    enqueued: UTCDatetime
     """Datetime in UTC when the task was enqueued."""
 
-    dequeued: NaiveDatetime
+    dequeued: UTCDatetime
     """Datetime in UTC when the task was dequeued."""
 
-    started: NaiveDatetime | None
+    started: UTCDatetime | None
     """Datetime in UTC when the task was started."""
 
-    cancelled: NaiveDatetime
+    cancelled: UTCDatetime
     """Datetime in UTC when the task was cancelled."""
 
     @classmethod
     def map(cls, task: sm.CancelledTask) -> Self:
-        """Map to internal representation."""
+        """Map from internal representation."""
         return cls(
             task=task.task,
-            enqueued=task.enqueued.astimezone(UTC).replace(tzinfo=None),
-            dequeued=task.dequeued.astimezone(UTC).replace(tzinfo=None),
-            started=task.started.astimezone(UTC).replace(tzinfo=None)
-            if task.started
-            else None,
-            cancelled=task.cancelled.astimezone(UTC).replace(tzinfo=None),
+            enqueued=task.enqueued,
+            dequeued=task.dequeued,
+            started=task.started,
+            cancelled=task.cancelled,
         )
 
 
@@ -193,16 +183,16 @@ class FailedTask(SerializableModel):
     task: sm.Task
     """Task data."""
 
-    enqueued: NaiveDatetime
+    enqueued: UTCDatetime
     """Datetime in UTC when the task was enqueued."""
 
-    dequeued: NaiveDatetime
+    dequeued: UTCDatetime
     """Datetime in UTC when the task was dequeued."""
 
-    started: NaiveDatetime | None
+    started: UTCDatetime | None
     """Datetime in UTC when the task was started."""
 
-    failed: NaiveDatetime
+    failed: UTCDatetime
     """Datetime in UTC when the task failed."""
 
     error: str
@@ -210,15 +200,13 @@ class FailedTask(SerializableModel):
 
     @classmethod
     def map(cls, task: sm.FailedTask) -> Self:
-        """Map to internal representation."""
+        """Map from internal representation."""
         return cls(
             task=task.task,
-            enqueued=task.enqueued.astimezone(UTC).replace(tzinfo=None),
-            dequeued=task.dequeued.astimezone(UTC).replace(tzinfo=None),
-            started=task.started.astimezone(UTC).replace(tzinfo=None)
-            if task.started
-            else None,
-            failed=task.failed.astimezone(UTC).replace(tzinfo=None),
+            enqueued=task.enqueued,
+            dequeued=task.dequeued,
+            started=task.started,
+            failed=task.failed,
             error=task.error,
         )
 
@@ -229,16 +217,16 @@ class CompletedTask(SerializableModel):
     task: sm.Task
     """Task data."""
 
-    enqueued: NaiveDatetime
+    enqueued: UTCDatetime
     """Datetime in UTC when the task was enqueued."""
 
-    dequeued: NaiveDatetime
+    dequeued: UTCDatetime
     """Datetime in UTC when the task was dequeued."""
 
-    started: NaiveDatetime
+    started: UTCDatetime
     """Datetime in UTC when the task was started."""
 
-    completed: NaiveDatetime
+    completed: UTCDatetime
     """Datetime in UTC when the task was completed."""
 
     result: sm.JSON
@@ -246,13 +234,13 @@ class CompletedTask(SerializableModel):
 
     @classmethod
     def map(cls, task: sm.CompletedTask) -> Self:
-        """Map to internal representation."""
+        """Map from internal representation."""
         return cls(
             task=task.task,
-            enqueued=task.enqueued.astimezone(UTC).replace(tzinfo=None),
-            dequeued=task.dequeued.astimezone(UTC).replace(tzinfo=None),
-            started=task.started.astimezone(UTC).replace(tzinfo=None),
-            completed=task.completed.astimezone(UTC).replace(tzinfo=None),
+            enqueued=task.enqueued,
+            dequeued=task.dequeued,
+            started=task.started,
+            completed=task.completed,
             result=task.result,
         )
 
@@ -266,11 +254,11 @@ class ScheduleRequestModel(SerializableModel):
     condition: sm.Specification
     """Condition specification."""
 
-    dependencies: dict[str, UUID]
+    dependencies: dict[str, UUID] = Field(default_factory=dict)
     """Dependencies of the task."""
 
     def map(self) -> sm.ScheduleRequest:
-        """Map to external representation."""
+        """Map to internal representation."""
         return sm.ScheduleRequest(
             operation=self.operation,
             condition=self.condition,
@@ -285,7 +273,7 @@ class CleanRequestModel(SerializableModel):
     """Cleaning strategy specification."""
 
     def map(self) -> sm.CleanRequest:
-        """Map to external representation."""
+        """Map to internal representation."""
         return sm.CleanRequest(strategy=self.strategy)
 
 
@@ -297,7 +285,7 @@ class CleaningResult(SerializableModel):
 
     @classmethod
     def map(cls, result: sm.CleaningResult) -> Self:
-        """Map to internal representation."""
+        """Map from internal representation."""
         return cls(removed=result.removed)
 
 
