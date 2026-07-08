@@ -6,5 +6,5 @@ class ValidationError(ServiceError):
     """Raised when a validation error occurs."""
 
 
-class NotFoundError(ServiceError):
-    """Raised when task is not found."""
+class ConflictError(ValidationError):
+    """Raised when a conflict error occurs."""

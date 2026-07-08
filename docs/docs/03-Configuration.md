@@ -24,7 +24,7 @@ You can configure the service at runtime using various environment variables:
   (default: `P1D`)
 - `MANTIS__CLEANER__REFERENCE` -
   reference datetime for cleaning
-  (default: `2000-01-01T00:00:00`)
+  (default: `2000-01-01T00:00:00Z`)
 - `MANTIS__DEBUG` -
   enable debug mode
   (default: `true`)
@@ -96,7 +96,7 @@ You can configure the service at runtime using various environment variables:
   (default: `PT1M`)
 - `MANTIS__SYNCHRONIZER__REFERENCE` -
   reference datetime for synchronization
-  (default: `2000-01-01T00:00:00`)
+  (default: `2000-01-01T00:00:00Z`)
 - `MANTIS__SYNCHRONIZER__SYNCHRONIZERS__STREAM__WINDOW` -
-  duration of the time window for stream tasks
-  (default: `P1D`)
+  duration of the time window for stream tasks centered around current time
+  (default: `P2D`)

@@ -5,10 +5,10 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from mantis.config.models import SynchronizerConfig
-from mantis.services.beaver.service import BeaverService
+from mantis.services.apis.beaver.service import BeaverService
 from mantis.services.scheduler.service import SchedulerService
 from mantis.services.synchronizer.synchronizers.stream import StreamSynchronizer
-from mantis.utils.time import naiveutcnow
+from mantis.utils.time import awareutcnow
 
 
 class SynchronizerService:
@@ -34,7 +34,7 @@ class SynchronizerService:
         return reference + math.ceil((dt - reference) / interval) * interval
 
     async def _wait(self) -> None:
-        now = naiveutcnow()
+        now = awareutcnow()
         target = self._find_next_time(now)
 
         delta = target - now

@@ -1,12 +1,12 @@
 from collections.abc import Sequence
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from socket import gethostbyname
 
 from pydantic import BaseModel, Field
 
 from mantis.config.base import BaseConfig
-from mantis.utils.time import NaiveDatetime
+from mantis.utils.time import UTCDatetime
 
 
 class BeaverHTTPConfig(BaseModel):
@@ -47,7 +47,7 @@ class BeaverConfig(BaseModel):
 class CleanerConfig(BaseModel):
     """Configuration for the cleaner."""
 
-    reference: NaiveDatetime = datetime(2000, 1, 1, 0, 0, 0, 0)
+    reference: UTCDatetime = datetime(2000, 1, 1, 0, 0, 0, 0, tzinfo=UTC)
     """Reference datetime in UTC for cleaning."""
 
     interval: timedelta = timedelta(days=1)
@@ -226,8 +226,8 @@ class StoreConfig(BaseModel):
 class StreamSynchronizerConfig(BaseModel):
     """Configuration for the stream synchronizer."""
 
-    window: timedelta = timedelta(days=1)
-    """Duration of the time window."""
+    window: timedelta = timedelta(days=2)
+    """Duration of the time window centered around current time."""
 
 
 class SynchronizersConfig(BaseModel):
@@ -240,7 +240,7 @@ class SynchronizersConfig(BaseModel):
 class SynchronizerConfig(BaseModel):
     """Configuration for the synchronizer."""
 
-    reference: NaiveDatetime = datetime(2000, 1, 1, 0, 0, 0, 0)
+    reference: UTCDatetime = datetime(2000, 1, 1, 0, 0, 0, 0, tzinfo=UTC)
     """Reference datetime in UTC for synchronization."""
 
     interval: timedelta = timedelta(minutes=1)

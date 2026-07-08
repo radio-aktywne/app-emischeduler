@@ -1,26 +1,16 @@
 from datetime import datetime
 from uuid import UUID
 
-from mantis.services.beaver import models as bm
+from mantis.services.apis.beaver import models as bm
 from mantis.utils.mime import MimeType
 from mantis.utils.time import isostringify
 
 
-class EventNotFoundError(Exception):
-    """Raised when an event cannot be found."""
-
-    def __init__(self, event_id: UUID) -> None:
-        super().__init__(f"No event found for id {event_id}.")
+class OperationError(Exception):
+    """Base class for stream operation errors."""
 
 
-class ScheduleNotFoundError(Exception):
-    """Raised when a schedule cannot be found."""
-
-    def __init__(self, event_id: UUID) -> None:
-        super().__init__(f"No schedule found for event {event_id}.")
-
-
-class InstanceNotFoundError(Exception):
+class InstanceNotFoundError(OperationError):
     """Raised when an instance cannot be found."""
 
     def __init__(self, event_id: UUID, start: datetime) -> None:
@@ -29,39 +19,39 @@ class InstanceNotFoundError(Exception):
         )
 
 
-class InstanceAlreadyEndedError(Exception):
+class InstanceAlreadyEndedError(OperationError):
     """Raised when an instance has already ended."""
 
-    def __init__(self, event_id: UUID, start: datetime, end: datetime) -> None:
+    def __init__(self, instance: bm.InstanceWithEvent) -> None:
         super().__init__(
-            f"Instance for event {event_id} and start {isostringify(start)} has already ended at {isostringify(end)}."
+            f"Instance for event {instance.event.id} and start {isostringify(instance.start)} has already ended at {isostringify(instance.start + instance.duration)}."
         )
 
 
-class UnexpectedEventTypeError(Exception):
+class UnexpectedEventTypeError(OperationError):
     """Raised when an unexpected event type is encountered."""
 
-    def __init__(self, event_id: UUID, event_type: bm.EventType) -> None:
-        super().__init__(f"Event {event_id} has unexpected type {event_type}.")
+    def __init__(self, event: bm.Event) -> None:
+        super().__init__(f"Event {event.id} has unexpected type {event.type}.")
 
 
-class DownloadUnavailableError(Exception):
+class DownloadUnavailableError(OperationError):
     """Raised when a download is unavailable."""
 
-    def __init__(self, event_id: UUID, start: datetime) -> None:
+    def __init__(self, instance: bm.InstanceWithEvent) -> None:
         super().__init__(
-            f"No download available for event {event_id} and start {isostringify(start)}."
+            f"No download available for instance for event {instance.event.id} and start {isostringify(instance.start)}."
         )
 
 
-class UnexpectedFormatError(Exception):
+class UnexpectedFormatError(OperationError):
     """Raised when an unexpected format is encountered."""
 
     def __init__(self, fmt: MimeType) -> None:
         super().__init__(f"Unexpected format {fmt!s}.")
 
 
-class ReservationFailedError(Exception):
+class ReservationFailedError(OperationError):
     """Raised when a stream reservation fails."""
 
     def __init__(self, event_id: UUID) -> None:

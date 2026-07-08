@@ -25,7 +25,7 @@ class Service:
         except se.InvalidCleaningStrategyError as ex:
             raise e.ValidationError from ex
         except se.TaskNotFoundError as ex:
-            raise e.TaskNotFoundError(ex.id) from ex
+            raise e.NotFoundError from ex
         except se.ServiceError as ex:
             raise e.ServiceError from ex
 
@@ -42,7 +42,7 @@ class Service:
             task = await self._scheduler.tasks.get(request.id)
 
         if task is None:
-            raise e.TaskNotFoundError(request.id)
+            raise e.NotFoundError
 
         return m.GetResponse(task=m.GenericTask.map(task))
 
@@ -52,7 +52,7 @@ class Service:
             task = await self._scheduler.tasks.queued.get(request.id)
 
         if task is None:
-            raise e.TaskNotFoundError(request.id)
+            raise e.NotFoundError
 
         return m.GetQueuedResponse(task=m.QueuedTask.map(task))
 
@@ -62,7 +62,7 @@ class Service:
             task = await self._scheduler.tasks.waiting.get(request.id)
 
         if task is None:
-            raise e.TaskNotFoundError(request.id)
+            raise e.NotFoundError
 
         return m.GetWaitingResponse(task=m.WaitingTask.map(task))
 
@@ -74,7 +74,7 @@ class Service:
             task = await self._scheduler.tasks.sleeping.get(request.id)
 
         if task is None:
-            raise e.TaskNotFoundError(request.id)
+            raise e.NotFoundError
 
         return m.GetSleepingResponse(task=m.SleepingTask.map(task))
 
@@ -84,7 +84,7 @@ class Service:
             task = await self._scheduler.tasks.running.get(request.id)
 
         if task is None:
-            raise e.TaskNotFoundError(request.id)
+            raise e.NotFoundError
 
         return m.GetRunningResponse(task=m.RunningTask.map(task))
 
@@ -96,7 +96,7 @@ class Service:
             task = await self._scheduler.tasks.cancelled.get(request.id)
 
         if task is None:
-            raise e.TaskNotFoundError(request.id)
+            raise e.NotFoundError
 
         return m.GetCancelledResponse(task=m.CancelledTask.map(task))
 
@@ -106,7 +106,7 @@ class Service:
             task = await self._scheduler.tasks.failed.get(request.id)
 
         if task is None:
-            raise e.TaskNotFoundError(request.id)
+            raise e.NotFoundError
 
         return m.GetFailedResponse(task=m.FailedTask.map(task))
 
@@ -118,7 +118,7 @@ class Service:
             task = await self._scheduler.tasks.completed.get(request.id)
 
         if task is None:
-            raise e.TaskNotFoundError(request.id)
+            raise e.NotFoundError
 
         return m.GetCompletedResponse(task=m.CompletedTask.map(task))
 

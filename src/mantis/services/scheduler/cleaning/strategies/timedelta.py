@@ -6,7 +6,7 @@ from pyscheduler.models import types
 from pyscheduler.protocols import cleaning as c
 
 from mantis.models.base import SerializableModel
-from mantis.utils.time import naiveutcnow
+from mantis.utils.time import awareutcnow
 
 
 class Parameters(SerializableModel):
@@ -19,14 +19,11 @@ class Parameters(SerializableModel):
 class TimedeltaCleaningStrategy(c.CleaningStrategy):
     """Cleaning strategy that cleans tasks after a certain amount of time."""
 
-    def _parse_parameters(self, parameters: dict[str, types.JSON]) -> Parameters:
-        return Parameters.model_validate(parameters)
-
     @override
     async def evaluate(
         self, task: t.FinishedTask, parameters: dict[str, types.JSON]
     ) -> bool:
-        params = self._parse_parameters(parameters)
+        params = Parameters.model_validate(parameters)
 
         match task:
             case t.CancelledTask(cancelled=cancelled):
@@ -38,5 +35,5 @@ class TimedeltaCleaningStrategy(c.CleaningStrategy):
             case _:
                 return False
 
-        now = naiveutcnow()
+        now = awareutcnow()
         return (now - finished) > params.delta
