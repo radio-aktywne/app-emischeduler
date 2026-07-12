@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import cast, override
+from typing import override
 from uuid import UUID
 
 from mantis.config.models import Config
@@ -93,8 +93,11 @@ class ReplayDownloader(EventDownloader):
             instances_list_request
         )
 
-        instances = instances_list_response.results.instances
-        return cast("Sequence[bm.InstanceWithEvent]", instances)
+        return [
+            instance
+            for instance in instances_list_response.results.instances
+            if isinstance(instance, bm.InstanceWithEvent)
+        ]
 
     async def _find_past_live_instances(
         self, instance: bm.InstanceWithEvent

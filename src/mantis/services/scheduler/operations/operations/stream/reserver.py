@@ -30,7 +30,12 @@ class Reserver:
     ) -> om.ReserveResponseReservation | None:
         try:
             reserve_request = om.ReserveRequest(
-                data=om.ReservationInput(event=request.event, format=request.format)
+                data=om.ReservationInput(
+                    instance=om.Instance(
+                        event=request.instance.event.id, start=request.instance.start
+                    ),
+                    format=request.format,
+                )
             )
             reserve_response = await self._octopus.reserve(reserve_request)
         except oe.ConflictError:
@@ -60,6 +65,6 @@ class Reserver:
                     change.cancel()
                     await asyncio.wait([change])
 
-            raise e.ReservationFailedError(request.event)
+            raise e.ReservationFailedError(request.instance)
         finally:
             await changes.aclose()

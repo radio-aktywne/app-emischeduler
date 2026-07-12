@@ -74,7 +74,7 @@ class StreamOperation(o.Operation):
     async def _reserve(
         self, instance: bm.InstanceWithEvent, fmt: om.Format
     ) -> om.Credentials:
-        reserve_request = m.ReserveRequest(event=instance.event.id, format=fmt)
+        reserve_request = m.ReserveRequest(instance=instance, format=fmt)
 
         reserve_response = await self._reserver.reserve(reserve_request)
 

@@ -67,8 +67,8 @@ class DownloadResponse:
 class ReserveRequest:
     """Request to reserve a stream."""
 
-    event: UUID
-    """Identifier of the event."""
+    instance: bm.InstanceWithEvent
+    """Instance to reserve the stream for."""
 
     format: om.Format
     """Audio format to stream."""
