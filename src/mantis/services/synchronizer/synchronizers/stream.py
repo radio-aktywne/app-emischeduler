@@ -2,7 +2,7 @@ import asyncio
 from collections.abc import Sequence
 from contextlib import suppress
 from datetime import UTC, datetime, timedelta
-from typing import cast, override
+from typing import override
 from uuid import UUID
 
 from pydantic import ValidationError
@@ -62,8 +62,11 @@ class StreamSynchronizer(Synchronizer):
             instances_list_request
         )
 
-        instances = instances_list_response.results.instances
-        return cast("Sequence[bm.InstanceWithEvent]", instances)
+        return [
+            instance
+            for instance in instances_list_response.results.instances
+            if isinstance(instance, bm.InstanceWithEvent)
+        ]
 
     async def _fetch_tasks(self) -> Sequence[t.GenericTask]:
         index = await self._scheduler.tasks.list()

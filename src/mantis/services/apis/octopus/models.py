@@ -7,6 +7,7 @@ from uuid import UUID
 from pydantic import PlainSerializer
 
 from mantis.models.base import SerializableModel, datamodel
+from mantis.utils.time import NaiveDatetime
 
 
 class Format(StrEnum):
@@ -21,21 +22,31 @@ class EventType(StrEnum):
     AVAILABILITY_CHANGED = "availability-changed"
 
 
-class Credentials(SerializableModel):
-    """Credentials for accessing the stream."""
+class Instance(SerializableModel):
+    """Instance data."""
 
-    token: str
-    """Token to use to connect to the stream."""
+    event: UUID
+    """Identifier of the event the instance belongs to."""
+
+    start: NaiveDatetime
+    """Start datetime of the instance in event timezone."""
 
 
 class ReservationInput(SerializableModel):
     """Data for reserving a stream."""
 
-    event: UUID
-    """Identifier of the event to reserve the stream for."""
+    instance: Instance
+    """Instance to reserve the stream for."""
 
     format: Format = Format.OGG
     """Format of the audio in the stream."""
+
+
+class Credentials(SerializableModel):
+    """Credentials for accessing the stream."""
+
+    token: str
+    """Token to use to connect to the stream."""
 
 
 class Reservation(SerializableModel):

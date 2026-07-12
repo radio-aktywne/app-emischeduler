@@ -54,5 +54,7 @@ class UnexpectedFormatError(OperationError):
 class ReservationFailedError(OperationError):
     """Raised when a stream reservation fails."""
 
-    def __init__(self, event_id: UUID) -> None:
-        super().__init__(f"Failed to reserve stream for event {event_id}.")
+    def __init__(self, instance: bm.InstanceWithEvent) -> None:
+        super().__init__(
+            f"Failed to reserve stream for instance for event {instance.event.id} and start {isostringify(instance.start)}."
+        )

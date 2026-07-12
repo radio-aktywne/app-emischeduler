@@ -1,5 +1,3 @@
-from typing import cast
-
 from mantis.services.apis.beaver import errors as be
 from mantis.services.apis.beaver import models as bm
 from mantis.services.apis.beaver.service import BeaverService
@@ -26,5 +24,9 @@ class Finder:
         except be.NotFoundError as ex:
             raise e.InstanceNotFoundError(request.event, request.start) from ex
 
-        instance = cast("bm.InstanceWithEvent", instances_get_response.instance)
+        instance = instances_get_response.instance
+
+        if not isinstance(instance, bm.InstanceWithEvent):
+            raise e.OperationError
+
         return m.FindResponse(instance=instance)
